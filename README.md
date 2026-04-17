@@ -49,18 +49,18 @@ pacbio_lrna/ \
 # run order
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
-bash run_all.sh | tee logs/run_all.log \
+bash run_lrna.sh | tee logs/run_all.log \
 or by steps \
-bash run_all_v2.sh --all \
-bash run_all_v2.sh --core \
-bash run_all_v2.sh --fusion \
-bash run_all_v2.sh --te \
-bash run_all_v2.sh --qc \
-bash run_all_v2.sh --align \
-bash run_all_v2.sh --isoseq \
-bash run_all_v2.sh --sqanti3 \
-bash run_all_v2.sh --flair \
-bash run_all_v2.sh --summary \
+bash run_lrna.sh --all \
+bash run_lrna.sh --core \
+bash run_lrna.sh --fusion \
+bash run_lrna.sh --te \
+bash run_lrna.sh --qc \
+bash run_lrna.sh --align \
+bash run_lrna.sh --isoseq \
+bash run_lrna.sh --sqanti3 \
+bash run_lrna.sh --flair \
+bash run_lrna.sh --summary \
 or by sample \
-bash run_all_v2.sh --sample SAMPLEID --core \
-bash run_all_v2.sh --sample SAMPLEID --fusion
+bash run_lrna.sh --sample SAMPLEID --core \
+bash run_lrna.sh --sample SAMPLEID --fusion
