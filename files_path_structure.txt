@@ -1,0 +1,10 @@
+pacbio_lrna/
+├── hifi_reads/
+├── refs/
+├── results/
+├── logs/
+├── scripts/
+├── containers/
+├── samples.tsv
+├── config.sh
+└── run_all.sh
