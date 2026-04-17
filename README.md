@@ -50,7 +50,7 @@ pacbio_lrna/ \
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
 bash run_lrna.sh | tee logs/run_all.log \
-or by steps \
+****or by steps \
 bash run_lrna.sh --all \
 bash run_lrna.sh --core \
 bash run_lrna.sh --fusion \
@@ -61,6 +61,6 @@ bash run_lrna.sh --isoseq \
 bash run_lrna.sh --sqanti3 \
 bash run_lrna.sh --flair \
 bash run_lrna.sh --summary \
-or by sample \
+****or by sample \
 bash run_lrna.sh --sample SAMPLEID --core \
 bash run_lrna.sh --sample SAMPLEID --fusion
