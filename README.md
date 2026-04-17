@@ -21,7 +21,7 @@ samtools \
 minimap2 
 ## singularity for:
 CTAT-LR-fusion \
-JAFFAL \ 
+JAFFAL \
 TEchim \
 sometimes SQANTI3 
 # Prepare the references
