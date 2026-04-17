@@ -12,6 +12,19 @@
 11. Extract FGFR2 / ERBB4 / RET hits
 12. TE-gene overlap screen
 13. Final summary table
+# files structure
+pacbio_lrna/ \
+├── hifi_reads/ \
+├── refs/ \
+├── results/ \
+├── logs/ \
+├── scripts/ \
+&emsp; &emsp;  ├── install_tools.sh \
+&emsp; &emsp;  ├── prepare_refs.sh \
+├── containers/ \
+├── samples.tsv \
+├── config.sh \
+└── run_lrna.sh 
 # Tools used
 ## using conda for:
 pbmm2 \
@@ -33,19 +46,6 @@ refs/ctat_genome_lib \
 if using JAFFAL: \
 refs/jaffa_ref \
 actual .sif image files in containers/ 
-# files structure
-pacbio_lrna/ \
-├── hifi_reads/ \
-├── refs/ \
-├── results/ \
-├── logs/ \
-├── scripts/ \
-&emsp; &emsp;  ├── install_tools.sh \
-&emsp; &emsp;  ├── prepare_refs.sh \
-├── containers/ \
-├── samples.tsv \
-├── config.sh \
-└── run_all.sh 
 # run order
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
