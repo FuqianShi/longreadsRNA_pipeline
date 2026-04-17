@@ -63,4 +63,4 @@ bash run_all_v2.sh --flair \
 bash run_all_v2.sh --summary \
 or by sample \
 bash run_all_v2.sh --sample SAMPLEID --core \
-bash run_all_v2.sh --sample SAMPLEID --fusion \
+bash run_all_v2.sh --sample SAMPLEID --fusion
