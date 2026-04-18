@@ -31,12 +31,12 @@ pbmm2 \
 isoseq \
 pigeon \
 samtools \
-minimap2 
+minimap2 \
+SQANTI3 
 ## singularity for:
 CTAT-LR-fusion \
 JAFFAL \
 TEchim \
-sometimes SQANTI3 
 # Prepare the references
 refs/genome.fa \
 refs/gencode.gtf \ 
