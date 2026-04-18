@@ -26,14 +26,14 @@ pacbio_lrna/ \
 ├── config.sh \
 └── run_lrna.sh 
 # Tools used
-## using conda for:
+## install with conda:
 pbmm2 \
 isoseq \
 pigeon \
 samtools \
 minimap2 \
 SQANTI3 
-## singularity for:
+## install with singularity:
 CTAT-LR-fusion \
 JAFFAL \
 TEchim \
