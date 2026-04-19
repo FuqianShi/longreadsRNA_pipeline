@@ -45,7 +45,6 @@ if using CTAT-LR-fusion: \
 refs/ctat_genome_lib \
 if using JAFFAL: \
 refs/jaffa_ref \
-actual .sif image files in containers
 # run order
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
@@ -60,7 +59,7 @@ bash run_lrna.sh --align \
 bash run_lrna.sh --isoseq \
 bash run_lrna.sh --sqanti3 \
 bash run_lrna.sh --flair \
-bash run_lrna.sh --summary \
+bash run_lrna.sh --summary 
 **or by sample**\
 bash run_lrna.sh --sample SAMPLEID --core \
 bash run_lrna.sh --sample SAMPLEID --fusion
