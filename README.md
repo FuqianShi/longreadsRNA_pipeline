@@ -1,4 +1,4 @@
-# This pipeline will get tasks in one order:
+# This pipeline executes tasks in the following order:
 1. QC
 2. BAM to FASTQ
 3. pbmm2 alignment
