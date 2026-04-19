@@ -47,6 +47,7 @@ refs/gencode.sorted.gtf ## get from pigeon prepare
 # run order
 bash run_lrna.sh --all \
 bash run_lrna.sh --core \
+bash run_lrna.sh --te \
 **or by steps** \
 bash run_lrna.sh --qc \
 bash run_lrna.sh --align \
