@@ -45,12 +45,9 @@ refs/ctat_genome_lib \
 refs/gencode.sorted.gtf.pgi  ## get from pigeon prepare \
 refs/gencode.sorted.gtf ## get from pigeon prepare
 # run order
-bash scripts/install_tools.sh \
-bash scripts/prepare_refs.sh \
-bash run_lrna.sh | tee logs/run_all.log \
-**or by steps** \
 bash run_lrna.sh --all \
 bash run_lrna.sh --core \
+**or by steps** \
 bash run_lrna.sh --qc \
 bash run_lrna.sh --align \
 bash run_lrna.sh --isoseq \
