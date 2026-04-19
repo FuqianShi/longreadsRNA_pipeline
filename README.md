@@ -45,7 +45,7 @@ if using CTAT-LR-fusion: \
 refs/ctat_genome_lib \
 if using JAFFAL: \
 refs/jaffa_ref \
-actual .sif image files in containers/ 
+actual .sif image files in containers
 # run order
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
