@@ -40,7 +40,7 @@ JAFFAL
 refs/genome.fa ## set the right path to genome in config.sh \
 refs/gencode.gtf ## set the right path to genome in config.sh \
 refs/genome.mmi  ## get from minimap2 \
-refs/repeatmasker_hg38.bed \ ## download rmsk.txt.gz and make the bed file \
+refs/repeatmasker_hg38.bed ## download rmsk.txt.gz and make the bed file \
 refs/ctat_genome_lib \
 refs/gencode.sorted.gtf.pgi  ## get from pigeon prepare \
 refs/gencode.sorted.gtf ## get from pigeon prepare
