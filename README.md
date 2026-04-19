@@ -36,7 +36,7 @@ SQANTI3
 ## install with singularity:
 CTAT-LR-fusion \
 JAFFAL \
-TEchim \
+TEchim 
 # Prepare the references
 refs/genome.fa \
 refs/gencode.gtf \ 
@@ -49,7 +49,7 @@ actual .sif image files in containers/
 # run order
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
-bash run_lrna.sh | tee logs/run_all.log \
+bash run_lrna.sh | tee logs/run_all.log 
 **or by steps** \
 bash run_lrna.sh --all \
 bash run_lrna.sh --core \
