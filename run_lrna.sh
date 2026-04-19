@@ -216,7 +216,7 @@ run_sqanti3() {
             -w "${RESULTS}/04_sqanti3/${SAMPLE}/${SAMPLE}.collapsed.fa"
 
         log "sqanti3 ${SAMPLE}"
-        conda run -n "${ENV_SQANTI3}" sqanti3_qc.py \
+        conda run -n "${ENV_SQANTI3}" python "${SQANTI3_QC}" \
             "${RESULTS}/04_sqanti3/${SAMPLE}/${SAMPLE}.collapsed.fa" \
             "${GTF}" \
             "${GENOME}" \
@@ -273,6 +273,7 @@ run_ctat_lr_fusion() {
     done
 }
 
+
 run_jaffal() {
     log "STEP: JAFFAL"
 
@@ -291,9 +292,14 @@ run_jaffal() {
         mkdir -p "${RESULTS}/06_fusion/jaffal/${SAMPLE}"
 
         log "JAFFAL ${SAMPLE}"
-        "${SINGCMD}" exec --bind "${PROJECT_DIR}:${PROJECT_DIR}" "${JAFFAL_SIF}" \
-            bash -c "cd '${RESULTS}/06_fusion/jaffal/${SAMPLE}' && \
-            bpipe run /opt/JAFFAL.groovy '${RESULTS}/01_fastq/${SAMPLE}/${SAMPLE}.fastq.gz'" || true
+        "${SINGCMD}" exec \
+            --bind "${PROJECT_DIR}:${PROJECT_DIR}" \
+            "${JAFFAL_SIF}" \
+            bash -lc "
+                cd '${RESULTS}/06_fusion/jaffal/${SAMPLE}' && \
+                bpipe run '${JAFFAL_DIR}/JAFFAL.groovy' \
+                '${RESULTS}/01_fastq/${SAMPLE}/${SAMPLE}.fastq.gz'
+            " || true
     done
 }
 
