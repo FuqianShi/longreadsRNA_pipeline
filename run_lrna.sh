@@ -173,13 +173,9 @@ run_align() {
 run_isoseq_pigeon() {
     log "STEP: isoseq collapse + pigeon"
 
-    mkdir -p "${RESULTS}/03_isoseq/pigeon_ref"
-
-    if [[ ! -f "${RESULTS}/03_isoseq/pigeon_ref/annotation.sorted.gtf" ]]; then
-        log "Preparing pigeon reference"
-        conda run -n "${ENV_CORE}" pigeon prepare "${GTF}" "${GENOME}" \
-            "${RESULTS}/03_isoseq/pigeon_ref/annotation"
-    fi
+    log "Preparing pigeon reference inputs"
+    conda run -n "${ENV_CORE}" pigeon prepare "${GTF}"
+    conda run -n "${ENV_CORE}" pigeon prepare "${GENOME}"
 
     get_sample_lines | tail -n +2 | while IFS=$'\t' read -r SAMPLE BAM; do
         mkdir -p "${RESULTS}/03_isoseq/${SAMPLE}"
@@ -192,7 +188,7 @@ run_isoseq_pigeon() {
         log "pigeon classify ${SAMPLE}"
         conda run -n "${ENV_CORE}" pigeon classify \
             "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff" \
-            "${RESULTS}/03_isoseq/pigeon_ref/annotation.sorted.gtf" \
+            "${GTF_SORTED}" \
             "${GENOME}" \
             -o "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon"
 
@@ -202,6 +198,7 @@ run_isoseq_pigeon() {
             "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon_junctions.txt"
     done
 }
+
 
 run_sqanti3() {
     log "STEP: SQANTI3"
