@@ -35,8 +35,7 @@ minimap2 \
 SQANTI3 
 ## install with singularity:
 CTAT-LR-fusion \
-JAFFAL \
-TEchim 
+JAFFAL 
 # Prepare the references
 refs/genome.fa \
 refs/gencode.gtf \ 
