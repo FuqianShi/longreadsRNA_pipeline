@@ -44,7 +44,7 @@ optionally refs/repeatmasker_hg38.bed \
 if using CTAT-LR-fusion: \
 refs/ctat_genome_lib \
 if using JAFFAL: \
-refs/jaffa_ref \
+refs/jaffa_ref 
 # run order
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
