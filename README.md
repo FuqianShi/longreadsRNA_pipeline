@@ -37,13 +37,13 @@ SQANTI3
 CTAT-LR-fusion \
 JAFFAL 
 # Prepare the references
-refs/genome.fa \
-refs/gencode.gtf \ 
-optionally refs/repeatmasker_hg38.bed \
-if using CTAT-LR-fusion: \
+refs/genome.fa \ ## set the right path to genome in config.sh
+refs/gencode.gtf \  ## set the right path to genome in config.sh
+refs/genome.mmi \ ## get from minimap2
+refs/repeatmasker_hg38.bed \ ## download rmsk.txt.gz and make the bed file
 refs/ctat_genome_lib \
-if using JAFFAL: \
-refs/jaffa_ref 
+refs/gencode.sorted.gtf.pgi \ ## get from pigeon prepare
+refs/gencode.sorted.gtf ## get from pigeon prepare
 # run order
 bash scripts/install_tools.sh \
 bash scripts/prepare_refs.sh \
