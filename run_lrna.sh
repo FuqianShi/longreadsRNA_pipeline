@@ -1,7 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
+    PROJECT_DIR="${SLURM_SUBMIT_DIR}"
+else
+    PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
+
 source "${PROJECT_DIR}/config.sh"
 
 mkdir -p "${RESULTS}" "${LOGS}"
@@ -125,9 +131,9 @@ run_qc_and_fastq() {
             "${RESULTS}/01_fastq/${SAMPLE}/${SAMPLE}.fastq.gz" \
             > "${RESULTS}/00_qc/${SAMPLE}/${SAMPLE}.seqkit.stats.txt"
     done
-
-    conda run -n "${ENV_CORE}" multiqc \
-        -o "${RESULTS}/09_reports/qc_report" "${RESULTS}/00_qc" || true
+    log "skipping MultiQC on this HPC"
+    ##conda run -n "${ENV_CORE}" multiqc \
+    ##     -o "${RESULTS}/09_reports/qc_report" "${RESULTS}/00_qc" || true 
 }
 
 run_align_pbmm2() {
@@ -170,6 +176,7 @@ run_align() {
     run_align_minimap2
 }
 
+## Run inside the sample directory and use a local output prefix, add collapse fixed
 run_isoseq_pigeon() {
     log "STEP: isoseq collapse + pigeon"
 
@@ -185,11 +192,15 @@ run_isoseq_pigeon() {
             "${RESULTS}/02_align/${SAMPLE}/${SAMPLE}.pbmm2.bam" \
             "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff"
 
+        log "Preparing collapsed isoforms for pigeon ${SAMPLE}"
+        conda run -n "${ENV_CORE}" pigeon prepare \
+            "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff"
+
         log "pigeon classify ${SAMPLE}"
         (
             cd "${RESULTS}/03_isoseq/${SAMPLE}"
             conda run -n "${ENV_CORE}" pigeon classify \
-                "${SAMPLE}.collapsed.gff" \
+                "${SAMPLE}.collapsed.sorted.gff" \
                 "${GTF_SORTED}" \
                 "${GENOME}" \
                 -o "${SAMPLE}.pigeon"
@@ -209,22 +220,16 @@ run_sqanti3() {
     get_sample_lines | tail -n +2 | while IFS=$'\t' read -r SAMPLE BAM; do
         mkdir -p "${RESULTS}/04_sqanti3/${SAMPLE}"
 
-        log "gffread ${SAMPLE}"
-        conda run -n "${ENV_CORE}" gffread \
-            "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff" \
-            -g "${GENOME}" \
-            -w "${RESULTS}/04_sqanti3/${SAMPLE}/${SAMPLE}.collapsed.fa"
-
         log "sqanti3 ${SAMPLE}"
         conda run -n "${ENV_SQANTI3}" python "${SQANTI3_QC}" \
-            "${RESULTS}/04_sqanti3/${SAMPLE}/${SAMPLE}.collapsed.fa" \
-            "${GTF}" \
-            "${GENOME}" \
-            --gtf "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff" \
-            --skipORF \
-            --dir "${RESULTS}/04_sqanti3/${SAMPLE}"
+            --isoforms "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff" \
+            --refGTF "${GTF}" \
+            --refFasta "${GENOME}" \
+            -o "${SAMPLE}" \
+            -d "${RESULTS}/04_sqanti3/${SAMPLE}"
     done
 }
+
 
 run_flair() {
     log "STEP: FLAIR"
@@ -267,18 +272,22 @@ run_ctat_lr_fusion() {
         "${SINGCMD}" exec --bind "${PROJECT_DIR}:${PROJECT_DIR}" "${CTATLR_SIF}" \
             ctat-LR-fusion \
             --genome_lib_dir "${CTAT_GENOME_LIB}" \
-            --long_reads "${RESULTS}/01_fastq/${SAMPLE}/${SAMPLE}.fastq.gz" \
+            --transcripts "${RESULTS}/01_fastq/${SAMPLE}/${SAMPLE}.fastq.gz" \
             --CPU "${THREADS}" \
-            --output_dir "${RESULTS}/06_fusion/ctat_lr/${SAMPLE}" || true
+            --output "${RESULTS}/06_fusion/ctat_lr/${SAMPLE}" || true
     done
 }
-
-
+## skip this, jaffal is not deisgned for lrna
 run_jaffal() {
     log "STEP: JAFFAL"
 
     [[ -f "${JAFFAL_SIF}" ]] || {
         log "Skipping JAFFAL: missing image ${JAFFAL_SIF}"
+        return 0
+    }
+
+    [[ -f "${JAFFA_TOOLS_GROOVY}" ]] || {
+        log "Skipping JAFFAL: missing tools.groovy bind file ${JAFFA_TOOLS_GROOVY}"
         return 0
     }
 
@@ -294,6 +303,7 @@ run_jaffal() {
         log "JAFFAL ${SAMPLE}"
         "${SINGCMD}" exec \
             --bind "${PROJECT_DIR}:${PROJECT_DIR}" \
+            --bind "${JAFFA_TOOLS_GROOVY}:/opt/conda/share/jaffa-2.3-0/tools.groovy" \
             "${JAFFAL_SIF}" \
             bash -lc "
                 cd '${RESULTS}/06_fusion/jaffal/${SAMPLE}' && \
@@ -302,6 +312,8 @@ run_jaffal() {
             " || true
     done
 }
+
+
 
 run_extract_kinase_fusions() {
     log "STEP: extract kinase fusions"
@@ -316,28 +328,49 @@ run_extract_kinase_fusions() {
 }
 
 run_fusion() {
-    run_ctat_lr_fusion
     run_jaffal
     run_extract_kinase_fusions
+}
+
+run_splicing_per_sample() {
+    log "STEP: per-sample splicing extraction"
+
+    get_sample_lines | tail -n +2 | while IFS=$'\t' read -r SAMPLE BAM; do
+        OUTDIR="${RESULTS}/07_splicing/${SAMPLE}"
+        mkdir -p "${OUTDIR}"
+
+        log "Extract kinase isoforms ${SAMPLE}"
+
+        cp "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoforms.gtf" \
+           "${OUTDIR}/${SAMPLE}.isoforms.gtf" 2>/dev/null || true
+
+        grep -E 'ENSG00000066468|ENSG00000178568|ENSG00000165731' \
+            "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoforms.gtf" \
+            > "${OUTDIR}/${SAMPLE}.target_kinase_isoforms.gtf" || true
+    done
 }
 
 run_splicing_merge() {
     log "STEP: merge FLAIR GTFs"
 
-    mkdir -p "${RESULTS}/07_splicing"
+    OUTDIR="${RESULTS}/07_splicing/merged"
+    mkdir -p "${OUTDIR}"
 
-    find "${RESULTS}/05_flair" -name "*.gtf" > "${RESULTS}/07_splicing/flair_gtf.list" || true
+    find "${RESULTS}/05_flair" -name "*.isoforms.gtf" > "${OUTDIR}/flair_gtf.list" || true
 
-    if [[ -s "${RESULTS}/07_splicing/flair_gtf.list" ]]; then
-        cat $(cat "${RESULTS}/07_splicing/flair_gtf.list") \
-            > "${RESULTS}/07_splicing/all_samples.flair.merged.gtf"
+    if [[ -s "${OUTDIR}/flair_gtf.list" ]]; then
+        xargs cat < "${OUTDIR}/flair_gtf.list" \
+            > "${OUTDIR}/all_samples.flair.merged.gtf"
 
-        grep -E 'FGFR2|ERBB4|RET' "${RESULTS}/07_splicing/all_samples.flair.merged.gtf" \
-            > "${RESULTS}/07_splicing/target_kinase_isoforms.gtf" || true
+        grep -E 'ENSG00000066468|ENSG00000178568|ENSG00000165731' \
+            "${OUTDIR}/all_samples.flair.merged.gtf" \
+            > "${OUTDIR}/target_kinase_isoforms.gtf" || true
     else
         log "No FLAIR GTF found, skipping merge"
     fi
 }
+
+
 
 run_te_overlap() {
     log "STEP: TE overlap screen"
@@ -361,18 +394,84 @@ run_te_overlap() {
 run_summary() {
     log "STEP: summary"
 
-    mkdir -p "${RESULTS}/09_reports/summary"
-
-    echo -e "Sample\tReadCount" > "${RESULTS}/09_reports/summary/read_counts.tsv"
+    mkdir -p "${RESULTS}/10_summary"
 
     get_sample_lines | tail -n +2 | while IFS=$'\t' read -r SAMPLE BAM; do
-        local COUNT="NA"
+        OUT="${RESULTS}/10_summary/${SAMPLE}.summary.txt"
+
+        echo -e "Sample\tMetric\tValue" > "${OUT}"
+
+        # QC
         if [[ -f "${RESULTS}/00_qc/${SAMPLE}/${SAMPLE}.read_count.txt" ]]; then
-            COUNT=$(cat "${RESULTS}/00_qc/${SAMPLE}/${SAMPLE}.read_count.txt")
+            RC=$(cat "${RESULTS}/00_qc/${SAMPLE}/${SAMPLE}.read_count.txt")
+            echo -e "${SAMPLE}\tread_count\t${RC}" >> "${OUT}"
         fi
-        echo -e "${SAMPLE}\t${COUNT}" >> "${RESULTS}/09_reports/summary/read_counts.tsv"
+
+        # Pigeon
+        if [[ -f "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon_classification.txt" ]]; then
+            IC=$(grep -v '^#' "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon_classification.txt" | wc -l)
+            echo -e "${SAMPLE}\tpigeon_isoform_count\t${IC}" >> "${OUT}"
+        fi
+
+        if [[ -f "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon_classification.txt" ]]; then
+            FSM=$(grep -c 'full-splice_match' "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon_classification.txt" 2>/dev/null || echo 0)
+            NIC=$(grep -c 'novel_in_catalog' "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon_classification.txt" 2>/dev/null || echo 0)
+            NNC=$(grep -c 'novel_not_in_catalog' "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon_classification.txt" 2>/dev/null || echo 0)
+            echo -e "${SAMPLE}\tpigeon_FSM\t${FSM}" >> "${OUT}"
+            echo -e "${SAMPLE}\tpigeon_NIC\t${NIC}" >> "${OUT}"
+            echo -e "${SAMPLE}\tpigeon_NNC\t${NNC}" >> "${OUT}"
+        fi
+
+        # SQANTI3
+        SQDIR="${RESULTS}/04_sqanti3/${SAMPLE}"
+        if [[ -d "${SQDIR}" ]]; then
+            SQFILES=$(find "${SQDIR}" -type f | wc -l)
+            echo -e "${SAMPLE}\tsqanti3_file_count\t${SQFILES}" >> "${OUT}"
+        fi
+
+        # FLAIR
+        if [[ -f "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoform.counts.txt" ]]; then
+            FCOUNT=$(wc -l < "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoform.counts.txt")
+            echo -e "${SAMPLE}\tflair_isoform_count_rows\t${FCOUNT}" >> "${OUT}"
+        fi
+
+        if [[ -f "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoform.read.map.txt" ]]; then
+            RMAP=$(wc -l < "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoform.read.map.txt")
+            echo -e "${SAMPLE}\tflair_read_map_rows\t${RMAP}" >> "${OUT}"
+        fi
+
+        # Splicing per-sample
+        if [[ -f "${RESULTS}/07_splicing/${SAMPLE}/${SAMPLE}.target_kinase_isoforms.gtf" ]]; then
+            KSP=$(wc -l < "${RESULTS}/07_splicing/${SAMPLE}/${SAMPLE}.target_kinase_isoforms.gtf")
+            echo -e "${SAMPLE}\tsplicing_target_kinase_rows\t${KSP}" >> "${OUT}"
+        fi
+
+        # Splicing merged
+        if [[ -f "${RESULTS}/07_splicing/merged/target_kinase_isoforms.gtf" ]]; then
+            MKSP=$(wc -l < "${RESULTS}/07_splicing/merged/target_kinase_isoforms.gtf")
+            echo -e "${SAMPLE}\tmerged_target_kinase_rows\t${MKSP}" >> "${OUT}"
+        fi
+
+        # TE
+        if [[ -f "${RESULTS}/08_tegene/${SAMPLE}/${SAMPLE}.isoform_TE_overlap.tsv" ]]; then
+            TE=$(wc -l < "${RESULTS}/08_tegene/${SAMPLE}/${SAMPLE}.isoform_TE_overlap.tsv")
+            echo -e "${SAMPLE}\tTE_overlap_count\t${TE}" >> "${OUT}"
+        fi
+
+        # Fusion: CTAT only
+        CTAT_DIR="${RESULTS}/06_fusion/ctat_lr/${SAMPLE}"
+        if [[ -d "${CTAT_DIR}" ]]; then
+            FC=$(grep -R -h -c -v '^#' "${CTAT_DIR}"/* 2>/dev/null | awk '{s+=$1} END{print s+0}')
+            echo -e "${SAMPLE}\tfusion_count_ctat_raw\t${FC}" >> "${OUT}"
+
+            KFC=$(grep -RiE 'FGFR2|ERBB4|RET' "${CTAT_DIR}" 2>/dev/null | wc -l)
+            echo -e "${SAMPLE}\tfusion_kinase_hits_ctat\t${KFC}" >> "${OUT}"
+        fi
     done
 }
+
+
+
 
 ###############################################################################
 # parse args
@@ -478,6 +577,7 @@ fi
 
 if [[ "${RUN_FLAIR}" -eq 1 ]]; then
     run_flair
+    run_splicing_per_sample
     run_splicing_merge
 fi
 
