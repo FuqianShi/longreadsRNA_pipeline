@@ -458,13 +458,13 @@ run_summary() {
             echo -e "${SAMPLE}\tTE_overlap_count\t${TE}" >> "${OUT}"
         fi
 
-        # Fusion: CTAT only
-        CTAT_DIR="${RESULTS}/06_fusion/ctat_lr/${SAMPLE}"
-        if [[ -d "${CTAT_DIR}" ]]; then
-            FC=$(grep -R -h -c -v '^#' "${CTAT_DIR}"/* 2>/dev/null | awk '{s+=$1} END{print s+0}')
-            echo -e "${SAMPLE}\tfusion_count_ctat_raw\t${FC}" >> "${OUT}"
+       # Fusion: CTAT final predictions only
+        CTAT_FILE="${RESULTS}/06_fusion/ctat_lr/${SAMPLE}/ctat-LR-fusion.fusion_predictions.tsv"
+        if [[ -f "${CTAT_FILE}" ]]; then
+            FC=$(grep -vc '^#' "${CTAT_FILE}")
+            echo -e "${SAMPLE}\tfusion_count_ctat\t${FC}" >> "${OUT}"
 
-            KFC=$(grep -RiE 'FGFR2|ERBB4|RET' "${CTAT_DIR}" 2>/dev/null | wc -l)
+            KFC=$(grep -Ei 'FGFR2|ERBB4|RET' "${CTAT_FILE}" | wc -l)
             echo -e "${SAMPLE}\tfusion_kinase_hits_ctat\t${KFC}" >> "${OUT}"
         fi
     done
