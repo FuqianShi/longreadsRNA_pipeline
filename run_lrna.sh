@@ -186,11 +186,14 @@ run_isoseq_pigeon() {
             "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff"
 
         log "pigeon classify ${SAMPLE}"
-        conda run -n "${ENV_CORE}" pigeon classify \
-            "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.collapsed.gff" \
-            "${GTF_SORTED}" \
-            "${GENOME}" \
-            -o "${RESULTS}/03_isoseq/${SAMPLE}/${SAMPLE}.pigeon"
+        (
+            cd "${RESULTS}/03_isoseq/${SAMPLE}"
+            conda run -n "${ENV_CORE}" pigeon classify \
+                "${SAMPLE}.collapsed.gff" \
+                "${GTF_SORTED}" \
+                "${GENOME}" \
+                -o "${SAMPLE}.pigeon"
+        )
 
         log "pigeon filter ${SAMPLE}"
         conda run -n "${ENV_CORE}" pigeon filter \
