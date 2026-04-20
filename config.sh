@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
 # threads
-export THREADS=20
+export THREADS=10
 
 # project root
 export PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # references
-export GENOME="${PROJECT_DIR}/refs/genome.fa"
+export GENOME="/path/to/Homo_sapiens_assembly38.fasta"
 export GTF="${PROJECT_DIR}/refs/gencode.gtf"
+export GTF_SORTED="${PROJECT_DIR}/refs/gencode.sorted.gtf"
 export TEBED="${PROJECT_DIR}/refs/repeatmasker_hg38.bed"
 
 # samples
@@ -25,14 +26,14 @@ export JAFFA_REF="${PROJECT_DIR}/refs/jaffa_ref"
 
 # conda env names
 export ENV_CORE="lrna_core"
-export SQANTI3_DIR="/projects/foran/Team_Chan/shi/PacBio_HiFi_RNA/pacbio_lrna/SQANTI3"
-export SQANTI3_QC="${SQANTI3_DIR}/sqanti3_qc.py"
 export ENV_SQANTI3="lrna_sqanti3"
 export ENV_FLAIR="lrna_flair"
+# SQANTI3
+export SQANTI3_QC="${SQANTI3_DIR}/sqanti3_qc.py"
+export SQANTI3_DIR="/path/to/SQANTI3"  ## the path 
 
 # singularity/apptainer images
-export SQANTI3_SIF="${CONTAINERS}/sqanti3.sif"
-export CTATLR_SIF="${CONTAINERS}/ctat_lr_fusion.sif"
+export CTATLR_SIF="${CONTAINERS}/ctat_lr_fusion_1.4.0.sif"
 export JAFFAL_SIF="${CONTAINERS}/jaffa_v2.3.sif"
 export JAFFAL_DIR="/opt/conda/share/jaffa-2.3-0"
-export TECHIM_SIF="${CONTAINERS}/techim.sif"
+export JAFFA_TOOLS_GROOVY="${PROJECT_DIR}/refs/jaffa_ref/tools.groovy"
