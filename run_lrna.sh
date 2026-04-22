@@ -277,43 +277,6 @@ run_ctat_lr_fusion() {
             --output "${RESULTS}/06_fusion/ctat_lr/${SAMPLE}" || true
     done
 }
-## skip this, jaffal is not deisgned for lrna
-run_jaffal() {
-    log "STEP: JAFFAL"
-
-    [[ -f "${JAFFAL_SIF}" ]] || {
-        log "Skipping JAFFAL: missing image ${JAFFAL_SIF}"
-        return 0
-    }
-
-    [[ -f "${JAFFA_TOOLS_GROOVY}" ]] || {
-        log "Skipping JAFFAL: missing tools.groovy bind file ${JAFFA_TOOLS_GROOVY}"
-        return 0
-    }
-
-    SINGCMD="$(get_singularity_cmd)"
-    [[ -n "${SINGCMD}" ]] || {
-        log "Skipping JAFFAL: singularity/apptainer not found"
-        return 0
-    }
-
-    get_sample_lines | tail -n +2 | while IFS=$'\t' read -r SAMPLE BAM; do
-        mkdir -p "${RESULTS}/06_fusion/jaffal/${SAMPLE}"
-
-        log "JAFFAL ${SAMPLE}"
-        "${SINGCMD}" exec \
-            --bind "${PROJECT_DIR}:${PROJECT_DIR}" \
-            --bind "${JAFFA_TOOLS_GROOVY}:/opt/conda/share/jaffa-2.3-0/tools.groovy" \
-            "${JAFFAL_SIF}" \
-            bash -lc "
-                cd '${RESULTS}/06_fusion/jaffal/${SAMPLE}' && \
-                bpipe run '${JAFFAL_DIR}/JAFFAL.groovy' \
-                '${RESULTS}/01_fastq/${SAMPLE}/${SAMPLE}.fastq.gz'
-            " || true
-    done
-}
-
-
 
 run_extract_kinase_fusions() {
     log "STEP: extract kinase fusions"
@@ -328,7 +291,7 @@ run_extract_kinase_fusions() {
 }
 
 run_fusion() {
-    run_jaffal
+    run_ctat_lr_fusion
     run_extract_kinase_fusions
 }
 
@@ -458,7 +421,7 @@ run_summary() {
             echo -e "${SAMPLE}\tTE_overlap_count\t${TE}" >> "${OUT}"
         fi
 
-       # Fusion: CTAT final predictions only
+        # Fusion: CTAT final predictions only
         CTAT_FILE="${RESULTS}/06_fusion/ctat_lr/${SAMPLE}/ctat-LR-fusion.fusion_predictions.tsv"
         if [[ -f "${CTAT_FILE}" ]]; then
             FC=$(grep -vc '^#' "${CTAT_FILE}")
