@@ -8,10 +8,9 @@
 7. SQANTI3 QC
 8. FLAIR transcriptome/splicing
 9. CTAT-LR-fusion
-10. JAFFAL
-11. Extract FGFR2 / ERBB4 / RET hits
-12. TE-gene overlap screen
-13. Final summary table
+10. Extract FGFR2 / ERBB4 / RET hits
+11. TE-gene overlap screen
+12. Final summary table
 # files structure
 pacbio_lrna/ \
 ├── hifi_reads/ \
@@ -35,7 +34,6 @@ minimap2 \
 SQANTI3 
 ## install with singularity:
 CTAT-LR-fusion \
-JAFFAL 
 # Prepare the references
 refs/genome.fa ## set the right path to genome in config.sh \
 refs/gencode.gtf ## set the right path to genome in config.sh \
@@ -45,10 +43,9 @@ refs/ctat_genome_lib \
 refs/gencode.sorted.gtf.pgi  ## get from pigeon prepare \
 refs/gencode.sorted.gtf ## get from pigeon prepare
 # run order
-bash run_lrna.sh --all \
-bash run_lrna.sh --core \
-bash run_lrna.sh --te \
+bash run_lrna.sh --all ## all results \
 **or by steps** \
+bash run_lrna.sh --core ## from qc to flair \
 bash run_lrna.sh --qc \
 bash run_lrna.sh --align \
 bash run_lrna.sh --isoseq \
@@ -60,4 +57,6 @@ bash run_lrna.sh --summary \
 **or by sample**\
 bash run_lrna.sh --sample SAMPLEID --all \
 bash run_lrna.sh --sample SAMPLEID --core \
-bash run_lrna.sh --sample SAMPLEID --fusion
+bash run_lrna.sh --sample SAMPLEID --fusion \
+bash run_lrna.sh --sample SAMPLEID --te \
+bash run_lrna.sh --sample SAMPLEID --summary
