@@ -42,21 +42,33 @@ refs/repeatmasker_hg38.bed ## download rmsk.txt.gz and make the bed file \
 refs/ctat_genome_lib \
 refs/gencode.sorted.gtf.pgi  ## get from pigeon prepare \
 refs/gencode.sorted.gtf ## get from pigeon prepare
-# run order
-bash run_lrna.sh --all ## all results \
-**or by steps** \
-bash run_lrna.sh --core ## from qc to flair \
-bash run_lrna.sh --qc \
-bash run_lrna.sh --align \
-bash run_lrna.sh --isoseq \
-bash run_lrna.sh --sqanti3 \
-bash run_lrna.sh --flair \
-bash run_lrna.sh --fusion \
-bash run_lrna.sh --te \
-bash run_lrna.sh --summary \
-**or by sample**\
-bash run_lrna.sh --sample SAMPLEID --all \
-bash run_lrna.sh --sample SAMPLEID --core \
-bash run_lrna.sh --sample SAMPLEID --fusion \
-bash run_lrna.sh --sample SAMPLEID --te \
-bash run_lrna.sh --sample SAMPLEID --summary
+
+**Usage:** \
+  bash run_all_v2.sh [options] 
+  
+**Main switches:** \
+  --all         Run all steps \
+  --core        Run core transcriptome workflow: QC + align + isoseq/pigeon + sqanti3 + flair + summary \
+  --fusion      Run fusion workflow only \
+  --te          Run TE overlap workflow only 
+
+**Step-specific switches:** \
+  --qc          Run QC + FASTQ conversion \
+  --align       Run pbmm2 + minimap2 alignment \
+  --isoseq      Run isoseq collapse + pigeon \
+  --sqanti3     Run SQANTI3 \
+  --flair       Run FLAIR \
+  --summary     Run summary tables only 
+  
+**Optional:** \
+  --sample ID   Run only one sample \
+  --help        Show this help 
+  
+**Examples:** \
+  bash run_all_v2.sh --all \
+  bash run_all_v2.sh --core \
+  bash run_all_v2.sh --fusion \
+  bash run_all_v2.sh --te \
+  bash run_all_v2.sh --sample SAMPLEID --core \
+  bash run_all_v2.sh --sample SAMPLEID --fusion
+
