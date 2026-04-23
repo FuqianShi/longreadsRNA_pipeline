@@ -285,9 +285,6 @@ run_extract_kinase_fusions() {
 
     grep -R -E 'FGFR2|ERBB4|RET' "${RESULTS}/06_fusion/ctat_lr" \
         > "${RESULTS}/06_fusion/summary/ctat_kinase_hits.txt" || true
-
-    grep -R -E 'FGFR2|ERBB4|RET' "${RESULTS}/06_fusion/jaffal" \
-        > "${RESULTS}/06_fusion/summary/jaffal_kinase_hits.txt" || true
 }
 
 run_fusion() {
