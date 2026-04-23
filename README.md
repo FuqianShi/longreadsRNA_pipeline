@@ -33,7 +33,7 @@ samtools \
 minimap2 \
 SQANTI3 
 ## install with singularity:
-CTAT-LR-fusion \
+CTAT-LR-fusion
 # Prepare the references
 refs/genome.fa ## set the right path to genome in config.sh \
 refs/gencode.gtf ## set the right path to genome in config.sh \
