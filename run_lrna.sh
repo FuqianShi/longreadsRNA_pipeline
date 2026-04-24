@@ -304,7 +304,7 @@ run_splicing_per_sample() {
         cp "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoforms.gtf" \
            "${OUTDIR}/${SAMPLE}.isoforms.gtf" 2>/dev/null || true
 
-        grep -E 'ENSG00000066468|ENSG00000178568|ENSG00000165731' \
+        grep -E 'ENSG00000066468|ENSG00000178568|ENSG00000165731' \  # FGF2|ERBB4|RET
             "${RESULTS}/05_flair/${SAMPLE}/${SAMPLE}.isoforms.gtf" \
             > "${OUTDIR}/${SAMPLE}.target_kinase_isoforms.gtf" || true
     done
